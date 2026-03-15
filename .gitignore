@@ -1,0 +1,63 @@
+# ───────────────────────────────────────
+# Core Java artifacts (compiled classes, etc.)
+# ───────────────────────────────────────
+*.class
+
+# Package / distribution files (Maven usually puts these in /target anyway)
+*.jar
+*.war
+*.ear
+*.jpi
+
+# JVM crash logs & heap dumps
+hs_err_pid*
+replay_pid*
+*.hprof
+
+# ───────────────────────────────────────
+# Maven-specific
+# ───────────────────────────────────────
+target/
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Keep the Maven wrapper files (very useful for consistent builds)
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# ───────────────────────────────────────
+# IntelliJ IDEA (JetBrains) – only what's really needed
+# ───────────────────────────────────────
+.idea/
+# (IntelliJ creates .idea/.gitignore internally – don't fight it)
+*.iml
+*.iws
+out/
+
+# ───────────────────────────────────────
+# General junk / OS / editors
+# ───────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Linux / cross-platform temp
+*~
+.*.swp
+*.bak
+*.tmp
+*.log
+
+# Environment / secrets (never commit!)
+.env
