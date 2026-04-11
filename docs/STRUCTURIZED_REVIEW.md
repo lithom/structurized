@@ -2,7 +2,8 @@
 
 ## What the project currently does
 
-`structurized` is currently a pairwise transformation extractor built around a strict preserved core.
+`structurized-core` is currently the main implemented module of the Structurized stack.
+It is a pairwise transformation extractor built around a strict preserved core.
 
 Given two molecules `A` and `B`, the code:
 
@@ -13,7 +14,7 @@ Given two molecules `A` and `B`, the code:
 5. turns each connected tripartite component into one transformation group,
 6. canonicalizes each group into a `TransformationSignature`.
 
-The main implementation is in `src/main/java/tech/molecules/structurized/transforms/TransformationSplitter.java`.
+The main implementation is in `structurized-core/src/main/java/tech/molecules/structurized/transforms/TransformationSplitter.java`.
 `TransformationBench` runs this pairwise over many molecules.
 `TransformationBenchDemo` provides a small OpenChemLib-backed example.
 

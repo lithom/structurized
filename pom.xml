@@ -8,8 +8,14 @@
     <artifactId>structurized</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <name>structurized</name>
-    <description>Minimal cheminformatics library based on OpenChemLib</description>
-    <packaging>jar</packaging>
+    <description>Modular medicinal chemistry and cheminformatics analysis stack</description>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>structurized-core</module>
+        <module>structurized-endpoints</module>
+        <module>structurized-analytics</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,43 +25,27 @@
         <openchemlib.version>2025.5.1</openchemlib.version>
     </properties>
 
-    <dependencies>
-        <!-- OpenChemLib core -->
-        <dependency>
-            <groupId>com.actelion.research</groupId>
-            <artifactId>openchemlib</artifactId>
-            <version>${openchemlib.version}</version>
-        </dependency>
-
-        <!-- JUnit Jupiter for tests -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <release>${maven.compiler.release}</release>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                    <configuration>
+                        <useModulePath>false</useModulePath>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>
-

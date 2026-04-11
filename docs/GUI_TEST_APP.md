@@ -16,6 +16,10 @@ Main class:
 
 - `tech.molecules.structurized.gui.ScaffoldDiscoverySwingApp`
 
+Current location:
+
+- `structurized-core/src/main/java/tech/molecules/structurized/gui/ScaffoldDiscoverySwingApp.java`
+
 ## Supported input format
 
 The GUI expects a simple text file with one compound per line.
