@@ -12,18 +12,13 @@
 
     <artifactId>structurized-analytics</artifactId>
     <name>structurized-analytics</name>
-    <description>Analytics layer combining structurized-core with standardized endpoints</description>
+    <description>Analytics layer combining structurized-core with external endpoint and protocol layers</description>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>tech.molecules</groupId>
             <artifactId>structurized-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>tech.molecules</groupId>
-            <artifactId>structurized-endpoints</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

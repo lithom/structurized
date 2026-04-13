@@ -13,7 +13,6 @@
 
     <modules>
         <module>structurized-core</module>
-        <module>structurized-endpoints</module>
         <module>structurized-analytics</module>
     </modules>
 
