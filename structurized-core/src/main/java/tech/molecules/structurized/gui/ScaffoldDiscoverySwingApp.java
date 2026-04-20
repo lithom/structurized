@@ -5,9 +5,11 @@ import com.actelion.research.chem.SmilesParser;
 import com.actelion.research.chem.StereoMolecule;
 import com.actelion.research.gui.JStructureView;
 import tech.molecules.structurized.scaffolds.ScaffoldCandidate;
+import tech.molecules.structurized.scaffolds.ScaffoldDatasetDecomposition;
 import tech.molecules.structurized.scaffolds.ScaffoldDiscoveryConfig;
 import tech.molecules.structurized.scaffolds.ScaffoldDiscoveryEngine;
 import tech.molecules.structurized.scaffolds.ScaffoldDiscoveryResult;
+import tech.molecules.structurized.scaffolds.ScaffoldAnalyzer;
 import tech.molecules.structurized.transforms.TransformationBenchDemo;
 
 import javax.swing.BorderFactory;
@@ -40,7 +42,9 @@ import java.awt.Font;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Minimal Swing GUI for loading a SMILES file and inspecting discovered scaffold candidates.
@@ -52,6 +56,7 @@ public final class ScaffoldDiscoverySwingApp {
     private final JTextField fileField;
     private final JButton browseButton;
     private final JButton runButton;
+    private final JButton decompositionButton;
     private final JSpinner neighborCountSpinner;
     private final JSpinner minScaffoldSizeSpinner;
     private final JSpinner minSupportSpinner;
@@ -61,12 +66,15 @@ public final class ScaffoldDiscoverySwingApp {
     private final JTable candidateTable;
     private final JStructureView structureView;
     private final JTextArea detailArea;
+    private final Map<String, ScaffoldDatasetDecomposition> decompositionCache;
+    private ScaffoldDiscoveryResult lastDiscoveryResult;
 
     private ScaffoldDiscoverySwingApp() {
         frame = new JFrame("structurized Scaffold Discovery");
         fileField = new JTextField(40);
         browseButton = new JButton("Browse");
         runButton = new JButton("Load And Run");
+        decompositionButton = new JButton("Open Decomposition Viewer");
         neighborCountSpinner = new JSpinner(new SpinnerNumberModel(4, 1, 20, 1));
         minScaffoldSizeSpinner = new JSpinner(new SpinnerNumberModel(6, 1, 50, 1));
         minSupportSpinner = new JSpinner(new SpinnerNumberModel(2, 1, 1000, 1));
@@ -76,6 +84,8 @@ public final class ScaffoldDiscoverySwingApp {
         candidateTable = new JTable(tableModel);
         structureView = new JStructureView();
         detailArea = new JTextArea();
+        decompositionCache = new HashMap<>();
+        decompositionButton.setEnabled(false);
     }
 
     public static void main(String[] args) {
@@ -111,6 +121,7 @@ public final class ScaffoldDiscoverySwingApp {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         buttons.add(browseButton);
         buttons.add(runButton);
+        buttons.add(decompositionButton);
         filePanel.add(buttons, BorderLayout.EAST);
 
         JPanel options = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
@@ -123,6 +134,7 @@ public final class ScaffoldDiscoverySwingApp {
 
         browseButton.addActionListener(event -> chooseFile());
         runButton.addActionListener(event -> runDiscovery());
+        decompositionButton.addActionListener(event -> openDecompositionViewer());
 
         panel.add(filePanel, BorderLayout.NORTH);
         panel.add(options, BorderLayout.SOUTH);
@@ -136,11 +148,14 @@ public final class ScaffoldDiscoverySwingApp {
         TableRowSorter<CandidateTableModel> sorter = new TableRowSorter<>(tableModel);
         candidateTable.setRowSorter(sorter);
 
-        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
-        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
-        for (int column : new int[]{0, 1, 2, 3, 4, 5}) {
-            candidateTable.getColumnModel().getColumn(column).setCellRenderer(rightRenderer);
+        DefaultTableCellRenderer integerRenderer = new NumberRenderer(new DecimalFormat("0"));
+        DefaultTableCellRenderer scoreRenderer = new NumberRenderer(new DecimalFormat("0.00"));
+        DefaultTableCellRenderer fractionRenderer = new NumberRenderer(new DecimalFormat("0.000"));
+        for (int column : new int[]{0, 2, 4, 5}) {
+            candidateTable.getColumnModel().getColumn(column).setCellRenderer(integerRenderer);
         }
+        candidateTable.getColumnModel().getColumn(1).setCellRenderer(scoreRenderer);
+        candidateTable.getColumnModel().getColumn(3).setCellRenderer(fractionRenderer);
 
         candidateTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) {
@@ -223,19 +238,25 @@ public final class ScaffoldDiscoverySwingApp {
             protected void done() {
                 try {
                     ScaffoldDiscoveryResult result = get();
+                    lastDiscoveryResult = result;
+                    decompositionCache.clear();
                     tableModel.setCandidates(result.candidates);
                     if (!result.candidates.isEmpty()) {
                         candidateTable.setRowSelectionInterval(0, 0);
                     } else {
                         structureView.structureChanged();
                         detailArea.setText("");
+                        decompositionButton.setEnabled(false);
                     }
                     statusLabel.setText("Loaded " + result.compounds.size()
                             + " compounds, found " + result.candidates.size()
                             + " scaffold candidates from " + result.seedCount + " seeds.");
                 } catch (Exception ex) {
+                    lastDiscoveryResult = null;
+                    decompositionCache.clear();
                     tableModel.setCandidates(List.of());
                     detailArea.setText("");
+                    decompositionButton.setEnabled(false);
                     JOptionPane.showMessageDialog(
                             frame,
                             "Failed to run scaffold discovery:\n" + ex.getMessage(),
@@ -256,12 +277,14 @@ public final class ScaffoldDiscoverySwingApp {
         if (viewRow < 0) {
             structureView.structureChanged();
             detailArea.setText("");
+            decompositionButton.setEnabled(false);
             return;
         }
 
         int modelRow = candidateTable.convertRowIndexToModel(viewRow);
         ScaffoldCandidate candidate = tableModel.getCandidateAt(modelRow);
-        structureView.setIDCode(candidate.template.idcode);
+        decompositionButton.setEnabled(lastDiscoveryResult != null);
+        structureView.structureChanged(candidate.template.createDisplayMoleculeWithExitVectors(candidate.observedExitVectorAtoms));
 
         String scaffoldSmiles = new IsomericSmilesCreator(candidate.template.scaffold).getSmiles();
         detailArea.setText("""
@@ -294,9 +317,67 @@ public final class ScaffoldDiscoverySwingApp {
         detailArea.setCaretPosition(0);
     }
 
+    private void openDecompositionViewer() {
+        ScaffoldCandidate candidate = getSelectedCandidate();
+        if (candidate == null || lastDiscoveryResult == null) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Please select a scaffold candidate first.",
+                    "No Scaffold Selected",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        ScaffoldDatasetDecomposition cached = decompositionCache.get(candidate.template.idcode);
+        if (cached != null) {
+            ScaffoldDecompositionViewer.show(frame, cached);
+            return;
+        }
+
+        setBusy(true, "Computing full dataset decomposition...");
+        SwingWorker<ScaffoldDatasetDecomposition, Void> worker = new SwingWorker<>() {
+            @Override
+            protected ScaffoldDatasetDecomposition doInBackground() {
+                ScaffoldAnalyzer.Config cfg = new ScaffoldAnalyzer.Config();
+                return ScaffoldDatasetDecomposition.analyze(lastDiscoveryResult.compounds, candidate.template, cfg);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    ScaffoldDatasetDecomposition dataset = get();
+                    decompositionCache.put(candidate.template.idcode, dataset);
+                    statusLabel.setText("Computed full dataset decomposition for scaffold " + candidate.template.idcode + ".");
+                    ScaffoldDecompositionViewer.show(frame, dataset);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Failed to compute full dataset decomposition:\n" + ex.getMessage(),
+                            "Decomposition Failed",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    statusLabel.setText("Dataset decomposition failed.");
+                } finally {
+                    setBusy(false, statusLabel.getText());
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private ScaffoldCandidate getSelectedCandidate() {
+        int viewRow = candidateTable.getSelectedRow();
+        if (viewRow < 0) {
+            return null;
+        }
+        return tableModel.getCandidateAt(candidateTable.convertRowIndexToModel(viewRow));
+    }
+
     private void setBusy(boolean busy, String message) {
         browseButton.setEnabled(!busy);
         runButton.setEnabled(!busy);
+        decompositionButton.setEnabled(!busy && lastDiscoveryResult != null && candidateTable.getSelectedRow() >= 0);
         neighborCountSpinner.setEnabled(!busy);
         minScaffoldSizeSpinner.setEnabled(!busy);
         minSupportSpinner.setEnabled(!busy);
@@ -304,12 +385,28 @@ public final class ScaffoldDiscoverySwingApp {
         statusLabel.setText(message);
     }
 
+    private static final class NumberRenderer extends DefaultTableCellRenderer {
+        private final DecimalFormat format;
+
+        private NumberRenderer(DecimalFormat format) {
+            this.format = format;
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        protected void setValue(Object value) {
+            if (value instanceof Number number) {
+                super.setValue(format.format(number));
+                return;
+            }
+            super.setValue(value);
+        }
+    }
+
     private static final class CandidateTableModel extends AbstractTableModel {
         private static final String[] COLUMNS = {
                 "Rank", "Score", "Support", "Avg Explained", "Size", "ExitVecs", "Scaffold SMILES"
         };
-        private final DecimalFormat scoreFormat = new DecimalFormat("0.00");
-        private final DecimalFormat fractionFormat = new DecimalFormat("0.000");
         private List<ScaffoldCandidate> candidates = List.of();
 
         void setCandidates(List<ScaffoldCandidate> candidates) {
@@ -337,13 +434,23 @@ public final class ScaffoldDiscoverySwingApp {
         }
 
         @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return switch (columnIndex) {
+                case 0, 2, 4, 5 -> Integer.class;
+                case 1, 3 -> Double.class;
+                case 6 -> String.class;
+                default -> Object.class;
+            };
+        }
+
+        @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             ScaffoldCandidate candidate = candidates.get(rowIndex);
             return switch (columnIndex) {
                 case 0 -> rowIndex + 1;
-                case 1 -> scoreFormat.format(candidate.combinedScore);
+                case 1 -> candidate.combinedScore;
                 case 2 -> candidate.supportCount;
-                case 3 -> fractionFormat.format(candidate.averageExplainedFraction);
+                case 3 -> candidate.averageExplainedFraction;
                 case 4 -> candidate.scaffoldHeavyAtomCount;
                 case 5 -> candidate.observedExitVectorCount;
                 case 6 -> new IsomericSmilesCreator(candidate.template.scaffold).getSmiles();

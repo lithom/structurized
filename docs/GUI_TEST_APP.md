@@ -9,6 +9,7 @@ It is not intended to be the final user-facing chemistry GUI. Its purpose is:
 - load a simple SMILES file
 - run scaffold discovery
 - inspect candidate scaffolds and their score components
+- open a full-dataset scaffold decomposition viewer for one selected scaffold
 
 ## Entry point
 
@@ -55,11 +56,40 @@ For every discovered scaffold candidate, the table shows:
 Selecting a row shows:
 
 - scaffold depiction
+- observed exit vectors as labeled `R1`, `R2`, ... pseudo atoms on the depicted scaffold
 - scaffold SMILES
 - scaffold IDCode
 - detailed score values
 - discovery/support compound indices
 - observed exit-vector atoms and symmetry classes
+
+The discovery window also provides an `Open Decomposition Viewer` action for the selected scaffold.
+This runs full scaffold-to-compound decomposition over the loaded dataset and opens a separate
+tabbed viewer.
+
+## Decomposition viewer
+
+The decomposition viewer currently contains three tabs:
+
+- `Compounds`
+  - row-wise full-dataset decomposition table
+  - unmatched compounds are hidden by default
+  - selection shows the original compound and decomposition details
+
+- `1D Projection`
+  - choose one observed exit vector via `R1`, `R2`, ... toggle buttons
+  - compounds are grouped by substituent at that position
+  - unmatched compounds are hidden by default
+  - hovering or selecting an `R` button highlights the corresponding exit vector in the scaffold view
+  - special buckets are used for unsubstituted and multi-attachment compounds
+
+- `2D Projection`
+  - choose two observed exit vectors via `R1`, `R2`, ... toggle buttons
+  - compounds are grouped into a count matrix across the two chosen positions
+  - the first selected exit vector becomes the row axis, the second becomes the column axis
+  - hovering or selecting `R` buttons highlights the corresponding exit vectors in the scaffold view
+  - unmatched compounds are hidden by default
+  - selecting a cell shows the compound indices currently landing in that cell
 
 ## Current limitations
 
@@ -74,3 +104,9 @@ Selecting a row shows:
 
 4. Discovery parameters are still minimal.
    The GUI currently exposes neighbor count, minimum scaffold size, and minimum support.
+
+## Depiction note
+
+The GUI adds observed exit vectors only to the displayed scaffold copy.
+These are shown as OpenChemLib pseudo atoms with custom labels such as `R1` and `R2`.
+The canonical `ScaffoldTemplate` itself remains unchanged.

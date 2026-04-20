@@ -45,6 +45,7 @@ Notes
 - Internal Swing validation GUI: `tech.molecules.structurized.gui.ScaffoldDiscoverySwingApp`
 - PRISM now lives in the separate `prism` repository as its own multi-module project
 - `structurized-analytics` is reserved for analytics that combine structural methods with external endpoint/protocol layers
+- Conceptual overview: `docs/STRUCTURIZED_CONCEPTS.md`
 - Parent-aware context shell spec: `docs/CONTEXT_SHELL_ENCODING.md`
 - Scaffold-mode notes: `docs/SCAFFOLD_MODE.md`
 - Scaffold discovery notes: `docs/SCAFFOLD_DISCOVERY.md`

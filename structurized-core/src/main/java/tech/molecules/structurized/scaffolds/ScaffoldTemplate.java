@@ -3,10 +3,13 @@ package tech.molecules.structurized.scaffolds;
 import com.actelion.research.chem.Canonizer;
 import com.actelion.research.chem.Molecule;
 import com.actelion.research.chem.StereoMolecule;
+import com.actelion.research.chem.coords.CoordinateInventor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Canonical scaffold graph together with candidate exit vectors and atom symmetry classes.
@@ -52,5 +55,35 @@ public final class ScaffoldTemplate {
                 Arrays.copyOf(atomSymmetryClasses, atomSymmetryClasses.length),
                 exitVectors
         );
+    }
+
+    /**
+     * Creates a display-only scaffold copy with labeled exit-vector pseudo atoms attached to the
+     * provided scaffold atoms.
+     *
+     * <p>The canonical scaffold stored in this template remains unchanged. The added pseudo atoms
+     * exist only to make scaffold depictions easier to interpret in validation GUIs.</p>
+     */
+    public StereoMolecule createDisplayMoleculeWithExitVectors(List<Integer> exitVectorAtoms) {
+        StereoMolecule display = new StereoMolecule(scaffold);
+        display.setFragment(false);
+        int scaffoldAtomCount = scaffold.getAtoms();
+
+        Set<Integer> orderedAtoms = new LinkedHashSet<>(exitVectorAtoms);
+        int labelIndex = 1;
+        for (int atom : orderedAtoms) {
+            if (atom < 0 || atom >= scaffoldAtomCount) {
+                continue;
+            }
+
+            int exitVectorAtom = display.addAtom(0);
+            display.setAtomCustomLabel(exitVectorAtom, "R" + labelIndex);
+            display.addBond(atom, exitVectorAtom, Molecule.cBondTypeSingle);
+            labelIndex++;
+        }
+
+        new CoordinateInventor(0).invent(display);
+        display.ensureHelperArrays(Molecule.cHelperSymmetrySimple);
+        return display;
     }
 }

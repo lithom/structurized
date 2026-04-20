@@ -66,6 +66,21 @@ class ScaffoldAnalyzerTest {
                 .anyMatch(event -> event.eventType == SubstitutionEventType.MULTI_ATTACHMENT));
     }
 
+    @Test
+    void displayScaffoldAddsLabeledExitVectorPseudoAtoms() throws Exception {
+        ScaffoldTemplate template = ScaffoldTemplate.create(parse("c1ccccc1"));
+
+        StereoMolecule display = template.createDisplayMoleculeWithExitVectors(java.util.List.of(1, 4, 1));
+
+        assertEquals(8, display.getAllAtoms());
+        assertEquals("R1", display.getAtomCustomLabel(6));
+        assertEquals("R2", display.getAtomCustomLabel(7));
+        assertEquals(1, display.getConnAtoms(6));
+        assertEquals(1, display.getConnAtoms(7));
+        assertEquals(0, display.getAtomicNo(6));
+        assertEquals(0, display.getAtomicNo(7));
+    }
+
     private static StereoMolecule parse(String smiles) throws Exception {
         StereoMolecule molecule = new StereoMolecule();
         new SmilesParser().parse(molecule, smiles);
