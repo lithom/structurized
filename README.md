@@ -4,9 +4,9 @@ structurized
 Modular Java 23 Maven stack for cheminformatics and downstream analytics.
 
 Project coordinates:
-- Parent build: `tech.molecules:structurized:0.1.0-SNAPSHOT`
-- Core module: `tech.molecules:structurized-core:0.1.0-SNAPSHOT`
-- Analytics module: `tech.molecules:structurized-analytics:0.1.0-SNAPSHOT`
+- Parent build: `tech.molecules:structurized:0.1.0`
+- Core module: `tech.molecules:structurized-core:0.1.0`
+- Analytics module: `tech.molecules:structurized-analytics:0.1.0`
 
 Build
 -----
@@ -15,6 +15,15 @@ Build
 - `mvn package` – build all modules
 - `mvn test` – run all module tests
 - `mvn -pl structurized-core test` – run core-module tests only
+
+Release
+-------
+- Releases are published by GitHub Actions from pushed version tags or manual `workflow_dispatch`.
+- Publishing uses the Sonatype Central Publisher Portal flow and waits until upload completion.
+- Artifacts are signed with the configured GitHub Actions GPG secrets and include sources and javadocs.
+- Example release tag:
+- `git tag v0.1.0`
+- `git push origin v0.1.0`
 
 Usage
 -----

@@ -13,7 +13,7 @@ import java.util.*;
  * NOTE: The exact MCSFast API varies slightly across OCL versions. The provider below
  * shows a STRICT usage pattern and validates bond identity inside the preserved core.
  * If a method name differs in your build, adjust the few marked lines accordingly
- * (search for "// <--- CHECK YOUR OCL").
+ * (search for the comment marker "CHECK YOUR OCL").
  */
 public class TransformationBenchDemo {
 
